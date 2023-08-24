@@ -1,7 +1,225 @@
-﻿namespace foldersync
+﻿using System.Collections;
+using System.Security.Cryptography;
+
+namespace foldersync
 {
     class Program
     {
+        private static string? _folder1, _folder2, _log;
+        private static int _interval = 0;
+        private static LogFileClass? log;
+
+        private static bool ChecksumsDiffer(string source, string dest)
+        {
+            using (var md5 = MD5.Create())
+            {
+                try
+                {
+                    if (!File.Exists(source))
+                        throw new Exception("The source file can not be opened.");
+                }
+                catch (Exception ex)
+                {
+                    log.Log(ex.Message);
+                    return false;
+                }
+                var sourceFile = File.OpenRead(source);
+                var sourceHash = md5.ComputeHash(sourceFile);
+                sourceFile.Close();
+
+                try
+                {
+                    if (!File.Exists(dest))
+                        throw new Exception("The destination file can not be opened.");
+                }
+                catch (Exception ex)
+                {
+                    log.Log(ex.Message);
+                    return false;
+                }
+                var destFile = File.OpenRead(dest);
+                var destHash = md5.ComputeHash(destFile);
+                destFile.Close();
+                
+                return !StructuralComparisons.StructuralEqualityComparer.Equals(sourceHash, destHash);
+            }
+        }
+
+        private static int ArgumentsParsing(string[] args)
+        {
+            //get log path
+            try
+            {
+                Console.WriteLine(args[3]);
+                _log = args[3];
+                Console.WriteLine(_log);
+                if (_log == null || !File.Exists(_log))
+                    throw new Exception("Path " + _log + " does not exist!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return -1;
+            }
+
+            log = new LogFileClass(_log);
+
+            //get folder paths
+            try
+            {
+                _folder1 = args[0];
+                if (_folder1 == null || !Directory.Exists(_folder1))
+                    throw new Exception("Path " + _folder1 + " does not exist!");
+                _folder2 = args[1];
+                if (_folder2 == null || !Directory.Exists(_folder2))
+                    throw new Exception("Path " + _folder2 + " does not exist!");
+            }
+            catch (Exception ex)
+            {
+                log.Log(ex.Message);
+                log.Close();
+                return -1;
+            }
+
+            //get interval
+            try
+            {
+                if (_interval != null)
+                    _interval = Convert.ToInt32(args[2]);
+            }
+            catch (Exception ex)
+            {
+                log.Log(ex.Message);
+                log.Close();
+                return -1;
+            }
+
+            return 1;
+        }
+
+        private static void CreateMissingFolders(List<string> source, List<string> dest)
+        {
+            List<string> missingDestFolders = new List<string>(), paths = new List<string>();
+            missingDestFolders = source.Except(dest).ToList();
+            //create missing folders first
+            if (missingDestFolders.Count > 0)
+            {
+                //concat folder name to path
+                paths = missingDestFolders.Select(x => _folder2 + x).ToList();
+                foreach (var path in paths)
+                {
+                    try
+                    {
+                        log.Log("Creating folder: " + path);
+                        Directory.CreateDirectory(path);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Log("Something went wrong when creating: " + path);
+                    }
+                }
+            }
+        }
+
+        private static void CreateMissingFiles(List<string> source, List<string> dest)
+        {
+            List<string> missingDestFiles = new List<string>(), paths = new List<string>();
+            missingDestFiles = source.Except(dest).ToList();
+            //create missing files first
+            if (missingDestFiles.Count > 0)
+            {
+                //concat file name to path
+                paths = missingDestFiles.Select(x => _folder2 + x).ToList();
+                foreach (var path in paths)
+                {
+                    try
+                    {
+                        log.Log("Creating file: " + path);
+                        File.Copy(path.Replace(_folder2, _folder1), path);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Log("Something went wrong when creating: " + path);
+                    }
+                }
+            }
+        }
+
+        private static void UpdateChangedFiles(List<string> source, List<string> dest)
+        {
+            List<string> changedDestFiles = new List<string>(), paths = new List<string>();
+            changedDestFiles = source.Intersect(dest).Where(x => ChecksumsDiffer(_folder1 + x, _folder2 + x) == true).ToList();
+
+            //update existing files
+            if (changedDestFiles.Count > 0)
+            {
+                //concat file name to path
+                paths = changedDestFiles.Select(x => _folder2 + x).ToList();
+                foreach (var path in paths)
+                {
+                    try
+                    {
+                        log.Log("Updating file: " + path);
+                        File.Copy(path.Replace(_folder2, _folder1), path, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Log("Something went wrong when updating: " + path);
+                    }
+                }
+            }
+        }
+
+        private static void DeleteFiles(List<string> source, List<string> dest)
+        {
+            List<string> deleteDestFiles = new List<string>(), paths = new List<string>();
+            deleteDestFiles = dest.Except(source).ToList();
+
+            //delete files
+            if (deleteDestFiles.Count > 0)
+            {
+                //concat file name to path
+                paths = deleteDestFiles.Select(x => _folder2 + x).ToList();
+                foreach (var path in paths)
+                {
+                    try
+                    {
+                        log.Log("Deleting file: " + path);
+                        File.Delete(path);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Log("Something went wrong when deleting: " + path);
+                    }
+                }
+            }
+        }
+
+        private static void DeleteFolders(List<string> source, List<string> dest)
+        {
+            List<string> deleteDestFolders = new List<string>(), paths = new List<string>();
+            deleteDestFolders = dest.Except(source).ToList();
+
+            //delete folders
+            if (deleteDestFolders.Count > 0)
+            {
+                //concat file name to path
+                paths = deleteDestFolders.Select(x => _folder2 + x).ToList().OrderByDescending(x => x).ToList();
+                foreach (var path in paths)
+                {
+                    try
+                    {
+                        log.Log("Deleting file: " + path);
+                        Directory.Delete(path);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Log("Something went wrong when deleting: " + path);
+                    }
+                }
+            }
+        }
+
         static int Main(string[] args)
         {
             /*
@@ -10,15 +228,6 @@
              * interval - syncing interval
              * log - log file path
              */
-
-            string _folder1, _folder2, _log;
-            int _interval;
-
-            foreach(var item in args)
-            {
-                Console.WriteLine(item);
-            }
-
 
             //check arguments number
             if (args.Length == 0)
@@ -29,50 +238,10 @@
             {
                 return -1;
             }
-            //get log path
-            try
-            {
-                Console.WriteLine(args[3]);
-                _log = args[3];
-                Console.WriteLine(_log);
-                if (!File.Exists(_log))
-                    throw new Exception("Path " + _log + " does not exist!");
-                Console.WriteLine("test");
-            }
-            catch
-            {
-                return -1;
-            }
-            Console.WriteLine("test");
-            LogFileClass log = new LogFileClass(_log);
 
-            //get folder paths
-            try
-            {
-                _folder1 = args[0];
-                if (!Directory.Exists(_folder1))
-                    throw new Exception("Path " + _folder1 + " does not exist!");
-                _folder2 = args[1];
-                if (!Directory.Exists(_folder2))
-                    throw new Exception("Path " + _folder2 + " does not exist!");
-            }
-            catch (Exception ex)
-            {
-                log.Log(ex.Message);
-                log.Close();
+            //parsing arguments list
+            if (ArgumentsParsing(args) == -1)
                 return -1;
-            }
-            //get interval
-            try
-            {
-                _interval = Convert.ToInt32(args[2]);
-            }
-            catch (Exception ex)
-            {
-                log.Log(ex.Message);
-                log.Close();
-                return -1;
-            }
 
             while (true)
             {
@@ -96,80 +265,18 @@
                     return -1;
                 }
 
-                //check missing files/folders in dest
-                List<string> missingDestFolders = new List<string>(), missingDestFiles = new List<string>(), updateDestFiles = new List<string>();
+                //doing work
+                CreateMissingFolders(sourceFolders, destFolders);
 
-                missingDestFolders = sourceFolders.Except(destFolders).ToList();
-                missingDestFiles = sourceFiles.Except(destFiles).ToList();
-                updateDestFiles = sourceFiles.Intersect(destFiles).ToList();
+                CreateMissingFiles(sourceFiles, destFiles);
 
-                //check additional files/folders in dest
-                List<string> deleteDestFolders = new List<string>(), deleteDestFiles = new List<string>();
+                UpdateChangedFiles(sourceFiles, destFiles);
 
-                deleteDestFolders = destFolders.Except(sourceFolders).ToList();
-                deleteDestFiles = destFiles.Except(sourceFiles).ToList();
+                DeleteFiles(sourceFiles, destFiles);
 
+                DeleteFolders(sourceFolders, destFolders);
 
-                List<string> folderPaths = new List<string>(), filePaths = new List<string>();
-                //create missing folders first
-                if (missingDestFolders.Count > 0)
-                {
-                    //concat folder name to path
-                    folderPaths = missingDestFolders.Select(x => _folder2 + x).ToList();
-                    foreach (var path in folderPaths)
-                    {
-                        log.Log("Creating folder: " + path);
-                        Directory.CreateDirectory(path);
-                    }
-                }
-
-                //create missing files first
-                if (missingDestFiles.Count > 0)
-                {
-                    //concat file name to path
-                    filePaths = missingDestFiles.Select(x => _folder2 + x).ToList();
-                    foreach (var path in filePaths)
-                    {
-                        log.Log("Creating file: " + path);
-                        File.Copy(path.Replace(_folder2, _folder1), path);
-                    }
-                }
-
-                //update existing files
-                if (updateDestFiles.Count > 0)
-                {
-                    //concat file name to path
-                    filePaths = updateDestFiles.Select(x => _folder2 + x).ToList();
-                    foreach (var path in filePaths)
-                    {
-                        log.Log("Updating file: " + path);
-                        File.Copy(path.Replace(_folder2, _folder1), path, true);
-                    }
-                }
-
-                //delete files
-                if (deleteDestFiles.Count > 0)
-                {
-                    //concat file name to path
-                    filePaths = deleteDestFiles.Select(x => _folder2 + x).ToList();
-                    foreach (var path in filePaths)
-                    {
-                        log.Log("Deleting file: " + path);
-                        File.Delete(path);
-                    }
-                }
-
-                //delete folders
-                if (deleteDestFolders.Count > 0)
-                {
-                    //concat file name to path and sort to avoid deleting parent folders
-                    folderPaths = deleteDestFolders.Select(x => _folder2 + x).ToList().OrderByDescending(x => x).ToList();
-                    foreach (var path in folderPaths)
-                    {
-                        log.Log("Deleting folder: " + path);
-                        Directory.Delete(path);
-                    }
-                }
+                //preparing for nect iteration
                 log.Flush();
                 Thread.Sleep(_interval);
             }
@@ -192,13 +299,17 @@
 
             public void Log(string text)
             {
-                Console.WriteLine(text);
-                writer?.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
+                if(writer != null)
+                {
+                    Console.WriteLine(text);
+                    writer.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
+                }
             }
 
             public void Flush()
             {
-                writer?.Flush();
+                if(writer != null)
+                    writer.Flush();
             }
 
             public void Close()
