@@ -2,7 +2,7 @@
   "profiles": {
     "FolderSync": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\stefa\\Desktop\\FoldersToSync\\Source C:\\Users\\stefa\\Desktop\\FoldersToSync\\Copy 10000 C:\\Users\\stefa\\Desktop\\FoldersToSync\\Log.txt"
+      "commandLineArgs": "-l C:\\Users\\stefa\\Desktop\\FoldersToSync\\Log.txt -s C:\\Users\\stefa\\Desktop\\FoldersToSync\\Source -d C:\\Users\\stefa\\Desktop\\FoldersToSync\\Copy -i 10000"
     }
   }
 }

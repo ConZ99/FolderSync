@@ -47,12 +47,11 @@ namespace foldersync
 
         private static int ArgumentsParsing(string[] args)
         {
+            List<string> arguments = args.ToList();
             //get log path
             try
             {
-                Console.WriteLine(args[3]);
-                _log = args[3];
-                Console.WriteLine(_log);
+                _log = arguments.ElementAt(arguments.FindIndex(x => x.Contains("-l")) + 1);
                 if (_log == null || !File.Exists(_log))
                     throw new Exception("Path " + _log + " does not exist!");
             }
@@ -67,10 +66,10 @@ namespace foldersync
             //get folder paths
             try
             {
-                _folder1 = args[0];
+                _folder1 = arguments.ElementAt(arguments.FindIndex(x => x.Contains("-s")) + 1);
                 if (_folder1 == null || !Directory.Exists(_folder1))
                     throw new Exception("Path " + _folder1 + " does not exist!");
-                _folder2 = args[1];
+                _folder2 = arguments.ElementAt(arguments.FindIndex(x => x.Contains("-d")) + 1);
                 if (_folder2 == null || !Directory.Exists(_folder2))
                     throw new Exception("Path " + _folder2 + " does not exist!");
             }
@@ -85,7 +84,7 @@ namespace foldersync
             try
             {
                 if (_interval != null)
-                    _interval = Convert.ToInt32(args[2]);
+                    _interval = Convert.ToInt32(arguments.ElementAt(arguments.FindIndex(x => x.Contains("-i")) + 1));
             }
             catch (Exception ex)
             {
@@ -222,7 +221,7 @@ namespace foldersync
 
         static int Main(string[] args)
         {
-            /*
+            /* ARGUMENTS
              * source - first folder path
              * dest - second folder path
              * interval - syncing interval
@@ -276,7 +275,7 @@ namespace foldersync
 
                 DeleteFolders(sourceFolders, destFolders);
 
-                //preparing for nect iteration
+                //preparing for next iteration
                 log.Flush();
                 Thread.Sleep(_interval);
             }
