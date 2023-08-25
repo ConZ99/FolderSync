@@ -1,10 +1,10 @@
 # FolderSync
 
 ## Arguments
-- -s source - string value, complete path to the source folder
-- -d dest - string value, complete path to the destination folder
-- -i interval - an integer value, interval at which the sync will take place
-- -l log - string value, complete path to the log file
+- -s source (-s C:\Users\JoshDoe\Desktop\FoldersToSync\Source) - string value, complete path to the source folder
+- -d dest (-d C:\Users\JohnDoe\Desktop\FoldersToSync\Copy) - string value, complete path to the destination folder
+- -i interval (-i 10000) - an integer value in miliseconds, interval at which the sync will take place
+- -l log (-l C:\Users\JohnDoe\Desktop\FoldersToSync\Log.txt) - string value, complete path to the log file
 
 All of the arguments need to be passed as command line arguments.
 
