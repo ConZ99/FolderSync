@@ -1,15 +1,16 @@
 ﻿using System.Collections;
 using System.Security.Cryptography;
 
-namespace foldersync
+
+namespace FolderSync
 {
-    class Program
+    public class Program
     {
         private static string? _folder1, _folder2, _log;
         private static int _interval = 0;
         private static LogFileClass? log;
 
-        private static bool ChecksumsDiffer(string source, string dest)
+        internal static bool ChecksumsDiffer(string source, string dest)
         {
             using (var md5 = MD5.Create())
             {
@@ -40,19 +41,19 @@ namespace foldersync
                 var destFile = File.OpenRead(dest);
                 var destHash = md5.ComputeHash(destFile);
                 destFile.Close();
-                
+
                 return !StructuralComparisons.StructuralEqualityComparer.Equals(sourceHash, destHash);
             }
         }
 
-        private static int ArgumentsParsing(string[] args)
+        internal static int ArgumentsParsing(string[] args)
         {
             List<string> arguments = args.ToList();
             //get log path
             try
             {
                 _log = arguments.ElementAt(arguments.FindIndex(x => x.Contains("-l")) + 1);
-                if (_log == null || !File.Exists(_log))
+                if (_log == null)
                     throw new Exception("Path " + _log + " does not exist!");
             }
             catch (Exception ex)
@@ -60,8 +61,6 @@ namespace foldersync
                 Console.WriteLine(ex.Message);
                 return -1;
             }
-
-            log = new LogFileClass(_log);
 
             //get folder paths
             try
@@ -75,8 +74,7 @@ namespace foldersync
             }
             catch (Exception ex)
             {
-                log.Log(ex.Message);
-                log.Close();
+                Console.WriteLine(ex.Message);
                 return -1;
             }
 
@@ -88,15 +86,15 @@ namespace foldersync
             }
             catch (Exception ex)
             {
-                log.Log(ex.Message);
-                log.Close();
+                Console.WriteLine("Something went wrong with parsing the interval.");
+                Console.WriteLine(ex.Message);
                 return -1;
             }
 
             return 1;
         }
 
-        private static void CreateMissingFolders(List<string> source, List<string> dest)
+        internal static void CreateMissingFolders(List<string> source, List<string> dest)
         {
             List<string> missingDestFolders = new List<string>(), paths = new List<string>();
             missingDestFolders = source.Except(dest).ToList();
@@ -115,12 +113,13 @@ namespace foldersync
                     catch (Exception ex)
                     {
                         log.Log("Something went wrong when creating: " + path);
+                        Console.WriteLine(ex.Message);
                     }
                 }
             }
         }
 
-        private static void CreateMissingFiles(List<string> source, List<string> dest)
+        internal static void CreateMissingFiles(List<string> source, List<string> dest)
         {
             List<string> missingDestFiles = new List<string>(), paths = new List<string>();
             missingDestFiles = source.Except(dest).ToList();
@@ -139,12 +138,13 @@ namespace foldersync
                     catch (Exception ex)
                     {
                         log.Log("Something went wrong when creating: " + path);
+                        Console.WriteLine(ex.Message);
                     }
                 }
             }
         }
 
-        private static void UpdateChangedFiles(List<string> source, List<string> dest)
+        internal static void UpdateChangedFiles(List<string> source, List<string> dest)
         {
             List<string> changedDestFiles = new List<string>(), paths = new List<string>();
             changedDestFiles = source.Intersect(dest).Where(x => ChecksumsDiffer(_folder1 + x, _folder2 + x) == true).ToList();
@@ -164,12 +164,13 @@ namespace foldersync
                     catch (Exception ex)
                     {
                         log.Log("Something went wrong when updating: " + path);
+                        Console.WriteLine(ex.Message);
                     }
                 }
             }
         }
 
-        private static void DeleteFiles(List<string> source, List<string> dest)
+        internal static void DeleteFiles(List<string> source, List<string> dest)
         {
             List<string> deleteDestFiles = new List<string>(), paths = new List<string>();
             deleteDestFiles = dest.Except(source).ToList();
@@ -189,12 +190,13 @@ namespace foldersync
                     catch (Exception ex)
                     {
                         log.Log("Something went wrong when deleting: " + path);
+                        Console.WriteLine(ex.Message);
                     }
                 }
             }
         }
 
-        private static void DeleteFolders(List<string> source, List<string> dest)
+        internal static void DeleteFolders(List<string> source, List<string> dest)
         {
             List<string> deleteDestFolders = new List<string>(), paths = new List<string>();
             deleteDestFolders = dest.Except(source).ToList();
@@ -214,6 +216,7 @@ namespace foldersync
                     catch (Exception ex)
                     {
                         log.Log("Something went wrong when deleting: " + path);
+                        Console.WriteLine(ex.Message);
                     }
                 }
             }
@@ -222,10 +225,10 @@ namespace foldersync
         static int Main(string[] args)
         {
             /* ARGUMENTS
-             * source - first folder path
-             * dest - second folder path
-             * interval - syncing interval
-             * log - log file path
+             * -s source - first folder path
+             * -d dest - second folder path
+             * -i interval - syncing interval
+             * -l log - log file path
              */
 
             //check arguments number
@@ -241,6 +244,8 @@ namespace foldersync
             //parsing arguments list
             if (ArgumentsParsing(args) == -1)
                 return -1;
+
+            log = new LogFileClass(_log);
 
             while (true)
             {
@@ -281,11 +286,11 @@ namespace foldersync
             }
         }
 
-        class LogFileClass
+        internal class LogFileClass
         {
             FileStream? file;
             StreamWriter? writer;
-            public LogFileClass(string filename)
+            internal LogFileClass(string filename)
             {
                 if (filename != null)
                 {
@@ -298,20 +303,20 @@ namespace foldersync
 
             public void Log(string text)
             {
-                if(writer != null)
+                if (writer != null)
                 {
                     Console.WriteLine(text);
                     writer.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
                 }
             }
 
-            public void Flush()
+            internal void Flush()
             {
-                if(writer != null)
+                if (writer != null)
                     writer.Flush();
             }
 
-            public void Close()
+            internal void Close()
             {
                 if (file != null && writer != null)
                 {
