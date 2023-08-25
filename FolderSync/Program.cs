@@ -108,13 +108,13 @@ namespace FolderSync
                 {
                     try
                     {
-                        log.Log("Creating folder: " + path);
+                        log.Log("Creating folder: " + path.Replace(_folder2, ""));
                         Directory.CreateDirectory(path);
                         didWork = true;
                     }
                     catch (Exception ex)
                     {
-                        log.Log("Something went wrong when creating: " + path);
+                        log.Log("Something went wrong when creating: " + path.Replace(_folder2, ""));
                         Console.WriteLine(ex.Message);
                     }
                 }
@@ -134,13 +134,13 @@ namespace FolderSync
                 {
                     try
                     {
-                        log.Log("Creating file: " + path);
+                        log.Log("Creating file: " + path.Replace(_folder2, ""));
                         File.Copy(path.Replace(_folder2, _folder1), path);
                         didWork = true;
                     }
                     catch (Exception ex)
                     {
-                        log.Log("Something went wrong when creating: " + path);
+                        log.Log("Something went wrong when creating: " + path.Replace(_folder2, ""));
                         Console.WriteLine(ex.Message);
                     }
                 }
@@ -161,13 +161,13 @@ namespace FolderSync
                 {
                     try
                     {
-                        log.Log("Updating file: " + path);
+                        log.Log("Updating file: " + path.Replace(_folder2, ""));
                         File.Copy(path.Replace(_folder2, _folder1), path, true);
                         didWork = true;
                     }
                     catch (Exception ex)
                     {
-                        log.Log("Something went wrong when updating: " + path);
+                        log.Log("Something went wrong when updating: " + path.Replace(_folder2, ""));
                         Console.WriteLine(ex.Message);
                     }
                 }
@@ -188,13 +188,13 @@ namespace FolderSync
                 {
                     try
                     {
-                        log.Log("Deleting file: " + path);
+                        log.Log("Deleting file: " + path.Replace(_folder2, ""));
                         File.Delete(path);
                         didWork = true;
                     }
                     catch (Exception ex)
                     {
-                        log.Log("Something went wrong when deleting: " + path);
+                        log.Log("Something went wrong when deleting: " + path.Replace(_folder2, ""));
                         Console.WriteLine(ex.Message);
                     }
                 }
@@ -215,13 +215,13 @@ namespace FolderSync
                 {
                     try
                     {
-                        log.Log("Deleting file: " + path);
+                        log.Log("Deleting folder: " + path.Replace(_folder2, ""));
                         Directory.Delete(path);
                         didWork = true;
                     }
                     catch (Exception ex)
                     {
-                        log.Log("Something went wrong when deleting: " + path);
+                        log.Log("Something went wrong when deleting: " + path.Replace(_folder2, ""));
                         Console.WriteLine(ex.Message);
                     }
                 }
@@ -291,7 +291,7 @@ namespace FolderSync
                 if (!didWork)
                     Console.WriteLine("Nothing to report in this iteration.");
                 else didWork = false;
-                Console.WriteLine("\n");
+                Console.Write("\n");
 
                 log.Flush();
                 Thread.Sleep(_interval);
