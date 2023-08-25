@@ -53,7 +53,7 @@ namespace FolderSync.Tests
         public void LogFileClass_Log_ValidLogMessage_WritesToLogFile()
         {
             string logFilePath = "testLog.txt";
-            var logFile = new Program.LogFileClass(logFilePath);
+            var logFile = new LogFileClass(logFilePath);
 
             logFile.Log("Test log message");
 
