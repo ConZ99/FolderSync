@@ -8,7 +8,7 @@
 
 All of the arguments need to be passed as command line arguments.
 
-## Program description
+## Program Description
 &emsp;FolderSync is a program that periodically checks if two folders hierarchy is identical, in the case that it's not it creates the hierarchy and populates it with the needed files to become identical with the source folder.
 
 &emsp;The syncronization is one-way, this means that the destination folder will be made to be identical with the source folder, not the other way around.
