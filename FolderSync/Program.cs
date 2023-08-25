@@ -9,6 +9,7 @@ namespace FolderSync
         private static string? _folder1, _folder2, _log;
         private static int _interval = 0;
         private static LogFileClass? log;
+        private static bool didWork = false;
 
         internal static bool ChecksumsDiffer(string source, string dest)
         {
@@ -109,6 +110,7 @@ namespace FolderSync
                     {
                         log.Log("Creating folder: " + path);
                         Directory.CreateDirectory(path);
+                        didWork = true;
                     }
                     catch (Exception ex)
                     {
@@ -134,6 +136,7 @@ namespace FolderSync
                     {
                         log.Log("Creating file: " + path);
                         File.Copy(path.Replace(_folder2, _folder1), path);
+                        didWork = true;
                     }
                     catch (Exception ex)
                     {
@@ -160,6 +163,7 @@ namespace FolderSync
                     {
                         log.Log("Updating file: " + path);
                         File.Copy(path.Replace(_folder2, _folder1), path, true);
+                        didWork = true;
                     }
                     catch (Exception ex)
                     {
@@ -186,6 +190,7 @@ namespace FolderSync
                     {
                         log.Log("Deleting file: " + path);
                         File.Delete(path);
+                        didWork = true;
                     }
                     catch (Exception ex)
                     {
@@ -212,6 +217,7 @@ namespace FolderSync
                     {
                         log.Log("Deleting file: " + path);
                         Directory.Delete(path);
+                        didWork = true;
                     }
                     catch (Exception ex)
                     {
@@ -246,6 +252,7 @@ namespace FolderSync
                 return -1;
 
             log = new LogFileClass(_log);
+            log.Log("Syncing directories...");
 
             while (true)
             {
@@ -281,49 +288,13 @@ namespace FolderSync
                 DeleteFolders(sourceFolders, destFolders);
 
                 //preparing for next iteration
+                if (!didWork)
+                    Console.WriteLine("Nothing to report in this iteration.");
+                else didWork = false;
+                Console.WriteLine("\n");
+
                 log.Flush();
                 Thread.Sleep(_interval);
-            }
-        }
-
-        internal class LogFileClass
-        {
-            FileStream? file;
-            StreamWriter? writer;
-            internal LogFileClass(string filename)
-            {
-                if (filename != null)
-                {
-                    if (File.Exists(filename))
-                        File.Delete(filename);
-                    file = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                    writer = new StreamWriter(file);
-                }
-            }
-
-            public void Log(string text)
-            {
-                if (writer != null)
-                {
-                    Console.WriteLine(text);
-                    writer.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
-                }
-            }
-
-            internal void Flush()
-            {
-                if (writer != null)
-                    writer.Flush();
-            }
-
-            internal void Close()
-            {
-                if (file != null && writer != null)
-                {
-                    writer.Flush();
-                    writer.Close();
-                    file.Close();
-                }
             }
         }
     }
