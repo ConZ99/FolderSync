@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Security.Cryptography;
 
-
 namespace FolderSync
 {
     public class Program
@@ -11,6 +10,12 @@ namespace FolderSync
         private static LogFileClass? log;
         private static bool didWork = false;
 
+        /// <summary>
+        /// Calculates and compares the hash values of 2 files using MD5.
+        /// </summary>
+        /// <param name="source">The source file.</param>
+        /// <param name="dest">The destination file.</param>
+        /// <returns>True if the files differ, False if they are the same.</returns>
         internal static bool ChecksumsDiffer(string source, string dest)
         {
             using (var md5 = MD5.Create())
@@ -47,6 +52,11 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Parses the received console arguments.
+        /// </summary>
+        /// <param name="args">The list of strings that define the console arguments.</param>
+        /// <returns>Returns 1 if the arguments were parsed successfully, or -1 in case of exceptions.</returns>
         internal static int ArgumentsParsing(string[] args)
         {
             List<string> arguments = args.ToList();
@@ -95,6 +105,12 @@ namespace FolderSync
             return 1;
         }
 
+        /// <summary>
+        /// Computes the list of folders that are present in the source directory but not in the destination.
+        /// For each folder that is not present it creates the folder from the source path to the destination path.
+        /// </summary>
+        /// <param name="source">The source directory path.</param>
+        /// <param name="dest">The destination directory path.</param>
         internal static void CreateMissingFolders(List<string> source, List<string> dest)
         {
             List<string> missingDestFolders = new List<string>(), paths = new List<string>();
@@ -121,6 +137,13 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Computes the list of files that are present in the source directory but not in the destination.
+        /// For each file that is not present it copies the file and all it's contents from the source path to the destination path.
+        /// Will not overwrite files.
+        /// </summary>
+        /// <param name="source">The source directory path.</param>
+        /// <param name="dest">The destination directory path.</param>
         internal static void CreateMissingFiles(List<string> source, List<string> dest)
         {
             List<string> missingDestFiles = new List<string>(), paths = new List<string>();
@@ -147,6 +170,13 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Computes the list of files that are present in the source directory and in the destination.
+        /// For each file that is present it copies the file and all it's contents from the source path to the destination path.
+        /// Will overwrite files.
+        /// </summary>
+        /// <param name="source">The source directory path.</param>
+        /// <param name="dest">The destination directory path.</param>
         internal static void UpdateChangedFiles(List<string> source, List<string> dest)
         {
             List<string> changedDestFiles = new List<string>(), paths = new List<string>();
@@ -174,6 +204,12 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Computes the list of files that are not present in the source directory but present in the destination.
+        /// For each file that is not present in the source it deletes the file in the destination.
+        /// </summary>
+        /// <param name="source">The source directory path.</param>
+        /// <param name="dest">The destination directory path.</param>
         internal static void DeleteFiles(List<string> source, List<string> dest)
         {
             List<string> deleteDestFiles = new List<string>(), paths = new List<string>();
@@ -201,6 +237,12 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Computes the list of folders that are not present in the source directory but present in the destination.
+        /// For each folder that is present in the source it deletes the folder from the destination starting at children directories and working it's way up.
+        /// </summary>
+        /// <param name="source">The source directory path.</param>
+        /// <param name="dest">The destination directory path.</param>
         internal static void DeleteFolders(List<string> source, List<string> dest)
         {
             List<string> deleteDestFolders = new List<string>(), paths = new List<string>();
@@ -228,6 +270,15 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Encapsulates the entire logic for the Folder Syncing program.
+        /// Parses arguments, reads the entire hierarchy of the source and destination directories, does the necessary checks and actions to sync up the directories.
+        /// </summary>
+        /// <param name="args">The list of strings that define the console arguments.</param>
+        /// <param name="-s source">The source directory path.</param>
+        /// <param name="-d dest">The destination directory path.</param>
+        /// <param name="-i interval">The sync interval.</param>
+        /// <param name="-l log">The log file path.</param>
         static int Main(string[] args)
         {
             /* ARGUMENTS

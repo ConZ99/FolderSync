@@ -10,6 +10,11 @@ namespace FolderSync
     {
         FileStream? file;
         StreamWriter? writer;
+
+        /// <summary>
+        /// Creates and opens the log file.
+        /// </summary>
+        /// <param name="filename">Full path to the log file. Contains the file name as well.</param>
         internal LogFileClass(string filename)
         {
             if (filename != null)
@@ -21,6 +26,10 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Logs a text message to console and in the log file.
+        /// </summary>
+        /// <param name="text">The message that will be logged.</param>
         public void Log(string text)
         {
             if (writer != null)
@@ -30,12 +39,18 @@ namespace FolderSync
             }
         }
 
+        /// <summary>
+        /// Makes the flush functionality actionable.
+        /// </summary>
         internal void Flush()
         {
             if (writer != null)
                 writer.Flush();
         }
 
+        /// <summary>
+        /// Flushes data from the writer to the file and closes it.
+        /// </summary>
         internal void Close()
         {
             if (file != null && writer != null)
