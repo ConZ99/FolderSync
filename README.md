@@ -15,7 +15,7 @@ All of the arguments need to be passed as command line arguments.
 
 &emsp;The syncronization time interval can be set manually, after the time has elapsed the syncronization takes place, the program works in a loop.
 
-&emsp;Each creation/deletion of files and folders and updates of files (in case a file has been modified in the source folder this will be overwritten in the destination) if loged in the console and in a log file at a custom path.
+&emsp;Each creation/deletion of files and folders and update of files (in case a file has been modified in the source folder this will be overwritten in the destination) is logged in the console and in a log file at a custom path.
 
 &emsp;The syncronization logic has been implemented manually.
 
