@@ -281,13 +281,6 @@ namespace FolderSync
         /// <param name="-l log">The log file path.</param>
         static int Main(string[] args)
         {
-            /* ARGUMENTS
-             * -s source - first folder path
-             * -d dest - second folder path
-             * -i interval - syncing interval
-             * -l log - log file path
-             */
-
             //check arguments number
             if (args.Length == 0)
             {
